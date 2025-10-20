@@ -1,19 +1,19 @@
-// MQTT over WebSocket
+// MQTT setup for browser
 const broker = 'wss://test.mosquitto.org:8081';
 const client = mqtt.connect(broker);
 
-// You can replace this with your actual topic(s)
-const topics = ['your/topic/here'];
+// Add your topic(s) here
+const topics = ['your/topic/here']; 
 const plugs = {};
 
 client.on('connect', () => {
-  console.log('Connected to MQTT broker');
+  console.log('✅ Connected to MQTT broker');
   topics.forEach(t => client.subscribe(t));
 });
 
 client.on('message', (topic, message) => {
   try {
-    // Example message: "plug_id:1, voltage:230, current:0.5"
+    // Expected message format: "plug_id:1, voltage:230, current:0.5"
     const text = message.toString();
     const parts = Object.fromEntries(
       text.split(',').map(p => {
@@ -30,29 +30,32 @@ client.on('message', (topic, message) => {
     plugs[id] = { id, voltage, current, power };
     updateUI();
   } catch (err) {
-    console.error('Parse error:', err);
+    console.error('⚠️ Parse error:', err);
   }
 });
 
 function updateUI() {
-  const plugDiv = document.getElementById('plugs');
-  plugDiv.innerHTML = '';
+  const container = document.getElementById('plugs');
+  container.innerHTML = '';
 
   let total = 0;
+
   for (const id in plugs) {
     const p = plugs[id];
     total += p.power;
 
-    plugDiv.innerHTML += `
-      <div class="plug">
-        <h2>Plug ID: ${p.id}</h2>
-        <div class="value">Voltage: ${p.voltage.toFixed(2)} V</div>
-        <div class="value">Current: ${p.current.toFixed(2)} A</div>
-        <div class="value"><b>Power: ${p.power.toFixed(2)} W</b></div>
+    const card = `
+      <div class="plug-card">
+        <h2><i class="bi bi-plug-fill"></i> Plug ${p.id}</h2>
+        <div class="value"><i class="bi bi-lightning-charge"></i> Voltage: ${p.voltage.toFixed(2)} V</div>
+        <div class="value"><i class="bi bi-current"></i> Current: ${p.current.toFixed(2)} A</div>
+        <div class="value"><i class="bi bi-bar-chart-line"></i> <b>Power: ${p.power.toFixed(2)} W</b></div>
       </div>
     `;
+
+    container.innerHTML += card;
   }
 
-  document.getElementById('total').textContent =
-    `Total Power: ${total.toFixed(2)} W`;
+  document.getElementById('total').innerHTML =
+    `<i class="bi bi-graph-up-arrow"></i> Total Power: ${total.toFixed(2)} W`;
 }
