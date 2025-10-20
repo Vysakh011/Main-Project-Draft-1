@@ -3,20 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MQTT Smart Plug Dashboard</title>
+  <title>Smart Plug Energy Dashboard</title>
 
-  <!-- External MQTT library -->
+  <!-- MQTT Library -->
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
-  <!-- Link to external CSS -->
-  <link rel="stylesheet" href="style.css">
+  <!-- Google Font + Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Smart Plug Power Monitor</h1>
-  <div id="plugs"></div>
-  <div id="total">Total Power: 0 W</div>
+  <header>
+    <h1><i class="bi bi-lightning-charge-fill"></i> Smart Plug Power Dashboard</h1>
+    <p class="subtitle">Live energy usage via MQTT — test.mosquitto.org</p>
+  </header>
 
-  <!-- External JS -->
+  <main>
+    <section id="plugs" class="plug-container"></section>
+
+    <footer>
+      <div id="total" class="total-card">
+        <i class="bi bi-graph-up-arrow"></i> Total Power: 0 W
+      </div>
+    </footer>
+  </main>
+
   <script src="script.js"></script>
 </body>
 </html>
