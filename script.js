@@ -3,7 +3,8 @@ const broker = 'wss://test.mosquitto.org:8081';
 const client = mqtt.connect(broker);
 
 // Add your topic(s) here
-const topics = ['your/topic/here']; 
+// *** MODIFIED: Set to the topic used by the ESP32 code ***
+const topics = ['ece/power_monitor/PowerMonitor-01']; 
 const plugs = {};
 
 client.on('connect', () => {
@@ -13,24 +14,29 @@ client.on('connect', () => {
 
 client.on('message', (topic, message) => {
   try {
-    // Expected message format: "plug_id:1, voltage:230, current:0.5"
+    // *** MODIFIED: Parse the incoming message as JSON ***
+    // Expected message format from Arduino: 
+    // {"device":"ESP32-PowerMonitor-01","voltage":230.00,"current":0.500,"power":115.00}
     const text = message.toString();
-    const parts = Object.fromEntries(
-      text.split(',').map(p => {
-        const [k, v] = p.split(':').map(s => s.trim());
-        return [k, parseFloat(v)];
-      })
-    );
+    const parts = JSON.parse(text); // Parse the JSON string
 
-    const id = parts.plug_id || 0;
+    // The 'id' for the plug card will be the 'device' name/ID
+    const id = parts.device;
     const voltage = parts.voltage || 0;
     const current = parts.current || 0;
-    const power = voltage * current;
+    // The Arduino code calculates power, so we use it directly
+    const power = parts.power || 0; 
 
-    plugs[id] = { id, voltage, current, power };
-    updateUI();
+    if (id) {
+        plugs[id] = { id, voltage, current, power };
+        updateUI();
+    } else {
+        console.warn('⚠️ Received message with no device ID:', text);
+    }
+    
   } catch (err) {
-    console.error('⚠️ Parse error:', err);
+    console.error('⚠️ Parse or Process error:', err);
+    console.error('Raw message:', message.toString());
   }
 });
 
@@ -46,9 +52,9 @@ function updateUI() {
 
     const card = `
       <div class="plug-card">
-        <h2><i class="bi bi-plug-fill"></i> Plug ${p.id}</h2>
+        <h2><i class="bi bi-plug-fill"></i> ${p.id}</h2>
         <div class="value"><i class="bi bi-lightning-charge"></i> Voltage: ${p.voltage.toFixed(2)} V</div>
-        <div class="value"><i class="bi bi-current"></i> Current: ${p.current.toFixed(2)} A</div>
+        <div class="value"><i class="bi bi-current"></i> Current: ${p.current.toFixed(3)} A</div>
         <div class="value"><i class="bi bi-bar-chart-line"></i> <b>Power: ${p.power.toFixed(2)} W</b></div>
       </div>
     `;
