@@ -1,5 +1,5 @@
 // MQTT setup for browser (HiveMQ Public Broker)
-const broker = 'wss://broker.hivemq.com:8000/mqtt';
+const broker = 'wss://broker.hivemq.com:8884/mqtt';
 const client = mqtt.connect(broker);
 
 // Your topic must match the ESP8266 publish topic
