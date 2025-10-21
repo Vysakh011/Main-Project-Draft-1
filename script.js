@@ -1,41 +1,45 @@
-// MQTT setup for browser
-const broker = 'wss://test.mosquitto.org:8081/mqtt';
+// MQTT setup for browser (HiveMQ Public Broker)
+const broker = 'wss://broker.hivemq.com:8000/mqtt';
 const client = mqtt.connect(broker);
 
-// Add your topic(s) here
-// *** MODIFIED: Set to the topic used by the ESP32 code ***
-const topics = ['ece/power_monitor/PowerMonitor-01']; 
+// Your topic must match the ESP8266 publish topic
+// Example: "home/plug1/data"
+const topics = ['home/plug1/data'];
 const plugs = {};
 
 client.on('connect', () => {
-  console.log('✅ Connected to MQTT broker');
-  topics.forEach(t => client.subscribe(t));
+  console.log('✅ Connected to HiveMQ broker');
+  topics.forEach(t => {
+    client.subscribe(t, (err) => {
+      if (!err) console.log(`📡 Subscribed to topic: ${t}`);
+      else console.error('❌ Subscription error:', err);
+    });
+  });
 });
 
 client.on('message', (topic, message) => {
   try {
-    // *** MODIFIED: Parse the incoming message as JSON ***
-    // Expected message format from Arduino: 
-    // {"device":"ESP32-PowerMonitor-01","voltage":230.00,"current":0.500,"power":115.00}
     const text = message.toString();
-    const parts = JSON.parse(text); // Parse the JSON string
+    console.log(`📨 Message received on ${topic}:`, text);
 
-    // The 'id' for the plug card will be the 'device' name/ID
-    const id = parts.device;
-    const voltage = parts.voltage || 0;
-    const current = parts.current || 0;
-    // The Arduino code calculates power, so we use it directly
-    const power = parts.power || 0; 
+    // Expected format from ESP8266:
+    // plug:1 voltage:234V current:0.05A
+    const regex = /plug:(\d+)\s+voltage:(\d+(?:\.\d+)?)V\s+current:(\d+(?:\.\d+)?)A/;
+    const match = text.match(regex);
 
-    if (id) {
-        plugs[id] = { id, voltage, current, power };
-        updateUI();
+    if (match) {
+      const id = `Plug-${match[1]}`;
+      const voltage = parseFloat(match[2]);
+      const current = parseFloat(match[3]);
+      const power = voltage * current;
+
+      plugs[id] = { id, voltage, current, power };
+      updateUI();
     } else {
-        console.warn('⚠️ Received message with no device ID:', text);
+      console.warn('⚠️ Unrecognized message format:', text);
     }
-    
   } catch (err) {
-    console.error('⚠️ Parse or Process error:', err);
+    console.error('⚠️ Parse or process error:', err);
     console.error('Raw message:', message.toString());
   }
 });
