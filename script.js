@@ -1,5 +1,5 @@
 // MQTT setup for browser
-const broker = 'wss://test.mosquitto.org:8081';
+const broker = 'wss://test.mosquitto.org:8080';
 const client = mqtt.connect(broker);
 
 // Add your topic(s) here
