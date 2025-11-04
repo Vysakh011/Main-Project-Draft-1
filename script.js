@@ -4,7 +4,7 @@ const client = mqtt.connect(broker);
 
 // Your topic must match the ESP8266 publish topic
 // Example: "home/plug1/data"
-const topics = ['home/plug1/data'];
+const topics = ['smart/plug/data'];
 const plugs = {};
 
 client.on('connect', () => {
